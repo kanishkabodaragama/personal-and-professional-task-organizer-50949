@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
 import '../services/database_service.dart';
+import '../services/notification_service.dart';
 
 class TaskProvider extends ChangeNotifier {
   List<Task> _tasks = [];
@@ -15,9 +16,16 @@ class TaskProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   
   final DatabaseService _databaseService = DatabaseService();
+  final NotificationService _notificationService = NotificationService();
   
   TaskProvider() {
+    _initializeNotifications();
     loadTasks();
+  }
+  
+  /// Initializes notification service
+  Future<void> _initializeNotifications() async {
+    await _notificationService.initialize();
   }
   
   // PUBLIC_INTERFACE
@@ -45,6 +53,15 @@ class TaskProvider extends ChangeNotifier {
       final id = await _databaseService.insertTask(task);
       final newTask = task.copyWith(id: id);
       _tasks.add(newTask);
+      
+      // Schedule notification if reminder is enabled
+      if (newTask.hasReminder && newTask.dueDate != null) {
+        await _notificationService.scheduleTaskReminder(
+          newTask, 
+          newTask.reminderMinutes,
+        );
+      }
+      
       _applyFilters();
       notifyListeners();
     } catch (e) {
@@ -61,6 +78,21 @@ class TaskProvider extends ChangeNotifier {
       final index = _tasks.indexWhere((t) => t.id == task.id);
       if (index != -1) {
         _tasks[index] = task;
+        
+        // Handle notification updates
+        if (task.id != null) {
+          if (task.hasReminder && task.dueDate != null) {
+            // Schedule or update notification
+            await _notificationService.updateTaskReminder(
+              task, 
+              task.reminderMinutes,
+            );
+          } else {
+            // Cancel notification if reminder is disabled
+            await _notificationService.cancelTaskReminder(task.id!);
+          }
+        }
+        
         _applyFilters();
         notifyListeners();
       }
@@ -75,6 +107,10 @@ class TaskProvider extends ChangeNotifier {
   Future<void> deleteTask(int taskId) async {
     try {
       await _databaseService.deleteTask(taskId);
+      
+      // Cancel any scheduled notification
+      await _notificationService.cancelTaskReminder(taskId);
+      
       _tasks.removeWhere((task) => task.id == taskId);
       _applyFilters();
       notifyListeners();

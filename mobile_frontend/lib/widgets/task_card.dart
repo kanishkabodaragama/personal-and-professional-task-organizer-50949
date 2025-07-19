@@ -52,11 +52,24 @@ class TaskCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Priority indicator
-                  Icon(
-                    Icons.flag,
-                    color: _getPriorityColor(task.priority),
-                    size: 20,
+                  // Priority and reminder indicators
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (task.hasReminder && task.dueDate != null) ...[
+                        Icon(
+                          Icons.notifications_active,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 4),
+                      ],
+                      Icon(
+                        Icons.flag,
+                        color: _getPriorityColor(task.priority),
+                        size: 20,
+                      ),
+                    ],
                   ),
                 ],
               ),

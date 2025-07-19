@@ -8,6 +8,8 @@ class Task {
   final bool isCompleted;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool hasReminder;
+  final int reminderMinutes;
 
   const Task({
     this.id,
@@ -19,6 +21,8 @@ class Task {
     this.isCompleted = false,
     required this.createdAt,
     required this.updatedAt,
+    this.hasReminder = false,
+    this.reminderMinutes = 60, // Default to 1 hour before
   });
 
   // PUBLIC_INTERFACE
@@ -33,6 +37,8 @@ class Task {
     bool? isCompleted,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? hasReminder,
+    int? reminderMinutes,
   }) {
     return Task(
       id: id ?? this.id,
@@ -44,6 +50,8 @@ class Task {
       isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      hasReminder: hasReminder ?? this.hasReminder,
+      reminderMinutes: reminderMinutes ?? this.reminderMinutes,
     );
   }
 
@@ -60,6 +68,8 @@ class Task {
       'isCompleted': isCompleted ? 1 : 0,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'updatedAt': updatedAt.millisecondsSinceEpoch,
+      'hasReminder': hasReminder ? 1 : 0,
+      'reminderMinutes': reminderMinutes,
     };
   }
 
@@ -78,12 +88,14 @@ class Task {
       isCompleted: (map['isCompleted'] ?? 0) == 1,
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updatedAt']),
+      hasReminder: (map['hasReminder'] ?? 0) == 1,
+      reminderMinutes: map['reminderMinutes'] ?? 60,
     );
   }
 
   @override
   String toString() {
-    return 'Task{id: $id, title: $title, description: $description, dueDate: $dueDate, category: $category, priority: $priority, isCompleted: $isCompleted, createdAt: $createdAt, updatedAt: $updatedAt}';
+    return 'Task{id: $id, title: $title, description: $description, dueDate: $dueDate, category: $category, priority: $priority, isCompleted: $isCompleted, createdAt: $createdAt, updatedAt: $updatedAt, hasReminder: $hasReminder, reminderMinutes: $reminderMinutes}';
   }
 
   @override
@@ -97,7 +109,9 @@ class Task {
           dueDate == other.dueDate &&
           category == other.category &&
           priority == other.priority &&
-          isCompleted == other.isCompleted;
+          isCompleted == other.isCompleted &&
+          hasReminder == other.hasReminder &&
+          reminderMinutes == other.reminderMinutes;
 
   @override
   int get hashCode =>
@@ -107,5 +121,7 @@ class Task {
       dueDate.hashCode ^
       category.hashCode ^
       priority.hashCode ^
-      isCompleted.hashCode;
+      isCompleted.hashCode ^
+      hasReminder.hashCode ^
+      reminderMinutes.hashCode;
 }

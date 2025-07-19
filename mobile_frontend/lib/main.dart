@@ -5,6 +5,7 @@ import 'providers/theme_provider.dart';
 import 'providers/task_provider.dart';
 import 'screens/home_screen.dart';
 import 'utils/app_theme.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +13,11 @@ void main() async {
   // Initialize SharedPreferences for theme persistence
   final prefs = await SharedPreferences.getInstance();
   final isDarkMode = prefs.getBool('isDarkMode') ?? false;
+  
+  // Initialize notification service
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+  await notificationService.requestPermissions();
   
   runApp(MyApp(isDarkMode: isDarkMode));
 }

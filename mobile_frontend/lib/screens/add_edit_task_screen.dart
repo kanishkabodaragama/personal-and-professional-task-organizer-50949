@@ -21,6 +21,8 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
   String _selectedCategory = 'Personal';
   String _selectedPriority = 'Medium';
   bool _isLoading = false;
+  bool _hasReminder = false;
+  int _reminderMinutes = 60; // Default to 1 hour before
   
   final List<String> _categories = [
     'Personal',
@@ -46,6 +48,8 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
       _dueDate = widget.task!.dueDate;
       _selectedCategory = widget.task!.category;
       _selectedPriority = widget.task!.priority;
+      _hasReminder = widget.task!.hasReminder;
+      _reminderMinutes = widget.task!.reminderMinutes;
     }
   }
 
@@ -184,6 +188,7 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
                           onPressed: () {
                             setState(() {
                               _dueDate = null;
+                              _hasReminder = false; // Disable reminder when no due date
                             });
                           },
                         )
@@ -192,7 +197,63 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
                 ),
               ),
               
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              
+              // Reminder settings
+              if (_dueDate != null) ...[
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Reminder',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        SwitchListTile(
+                          title: const Text('Enable reminder'),
+                          subtitle: const Text('Get notified before the due date'),
+                          value: _hasReminder,
+                          onChanged: (value) {
+                            setState(() {
+                              _hasReminder = value;
+                            });
+                          },
+                          secondary: const Icon(Icons.notifications),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        
+                        if (_hasReminder) ...[
+                          const SizedBox(height: 16),
+                          DropdownButtonFormField<int>(
+                            value: _reminderMinutes,
+                            decoration: const InputDecoration(
+                              labelText: 'Remind me',
+                              prefixIcon: Icon(Icons.schedule),
+                            ),
+                            items: _getReminderOptions().map((option) {
+                              return DropdownMenuItem<int>(
+                                value: option['value'] as int,
+                                child: Text(option['label'] as String),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _reminderMinutes = value!;
+                              });
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+              
+              const SizedBox(height: 16),
               
               // Save button
               ElevatedButton(
@@ -263,6 +324,19 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
+  List<Map<String, dynamic>> _getReminderOptions() {
+    return [
+      {'value': 0, 'label': 'At due time'},
+      {'value': 15, 'label': '15 minutes before'},
+      {'value': 30, 'label': '30 minutes before'},
+      {'value': 60, 'label': '1 hour before'},
+      {'value': 120, 'label': '2 hours before'},
+      {'value': 1440, 'label': '1 day before'},
+      {'value': 2880, 'label': '2 days before'},
+      {'value': 10080, 'label': '1 week before'},
+    ];
+  }
+
   Future<void> _selectDueDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -301,6 +375,8 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
         isCompleted: widget.task?.isCompleted ?? false,
         createdAt: widget.task?.createdAt ?? now,
         updatedAt: now,
+        hasReminder: _hasReminder && _dueDate != null,
+        reminderMinutes: _reminderMinutes,
       );
 
       if (widget.task == null) {

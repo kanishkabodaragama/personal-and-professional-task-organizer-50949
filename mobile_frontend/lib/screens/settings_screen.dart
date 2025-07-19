@@ -1,9 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
+import '../services/notification_service.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  final NotificationService _notificationService = NotificationService();
+  bool _notificationsEnabled = true;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkNotificationStatus();
+  }
+
+  Future<void> _checkNotificationStatus() async {
+    final enabled = await _notificationService.areNotificationsEnabled();
+    setState(() {
+      _notificationsEnabled = enabled;
+    });
+  }
+
+  Future<void> _requestNotificationPermissions() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final granted = await _notificationService.requestPermissions();
+      setState(() {
+        _notificationsEnabled = granted;
+      });
+
+      if (!granted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Notification permissions are required for reminders'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error requesting permissions: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   // PUBLIC_INTERFACE
   @override
@@ -85,7 +145,7 @@ class SettingsScreen extends StatelessWidget {
           
           const SizedBox(height: 16),
           
-          // Placeholder for future settings
+          // Notification settings
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -100,18 +160,45 @@ class SettingsScreen extends StatelessWidget {
                   
                   SwitchListTile(
                     title: const Text('Due Date Reminders'),
-                    subtitle: const Text('Get notified about upcoming due dates'),
-                    value: true, // Placeholder - would be connected to actual notification settings
-                    onChanged: (value) {
-                      // TODO: Implement notification settings
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Notification settings coming soon!'),
-                        ),
-                      );
+                    subtitle: Text(_notificationsEnabled 
+                        ? 'Get notified about upcoming due dates'
+                        : 'Notification permissions not granted'),
+                    value: _notificationsEnabled,
+                    onChanged: _isLoading ? null : (value) {
+                      if (!value) {
+                        setState(() {
+                          _notificationsEnabled = false;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Notifications disabled. You can re-enable them in system settings.'),
+                          ),
+                        );
+                      } else {
+                        _requestNotificationPermissions();
+                      }
                     },
-                    secondary: const Icon(Icons.notifications),
+                    secondary: _isLoading 
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(
+                            _notificationsEnabled ? Icons.notifications : Icons.notifications_off,
+                            color: _notificationsEnabled ? null : Colors.grey,
+                          ),
                   ),
+                  
+                  if (_notificationsEnabled) ...[
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.info_outline),
+                      title: const Text('Manage Reminders'),
+                      subtitle: const Text('Set reminders when creating or editing tasks'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ],
                 ],
               ),
             ),

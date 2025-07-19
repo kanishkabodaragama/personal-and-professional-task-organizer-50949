@@ -19,8 +19,9 @@ class DatabaseService {
     String path = join(await getDatabasesPath(), 'tasks.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createTable,
+      onUpgrade: _upgradeDatabase,
     );
   }
 
@@ -36,9 +37,20 @@ class DatabaseService {
         priority TEXT NOT NULL,
         isCompleted INTEGER NOT NULL DEFAULT 0,
         createdAt INTEGER NOT NULL,
-        updatedAt INTEGER NOT NULL
+        updatedAt INTEGER NOT NULL,
+        hasReminder INTEGER NOT NULL DEFAULT 0,
+        reminderMinutes INTEGER NOT NULL DEFAULT 60
       )
     ''');
+  }
+
+  /// Handles database upgrades
+  Future<void> _upgradeDatabase(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add reminder columns to existing table
+      await db.execute('ALTER TABLE $tableName ADD COLUMN hasReminder INTEGER NOT NULL DEFAULT 0');
+      await db.execute('ALTER TABLE $tableName ADD COLUMN reminderMinutes INTEGER NOT NULL DEFAULT 60');
+    }
   }
 
   // PUBLIC_INTERFACE

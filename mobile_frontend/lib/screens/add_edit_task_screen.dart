@@ -113,11 +113,22 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
                 value: _selectedCategory,
                 decoration: const InputDecoration(
                   labelText: 'Category',
+                  prefixIcon: Icon(Icons.category),
                 ),
                 items: _categories.map((category) {
                   return DropdownMenuItem(
                     value: category,
-                    child: Text(category),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _getCategoryIcon(category),
+                          color: _getCategoryColor(category),
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(category),
+                      ],
+                    ),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -211,6 +222,40 @@ class _AddEditTaskScreenState extends State<AddEditTaskScreen> {
         return Colors.green;
       default:
         return Colors.grey;
+    }
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category) {
+      case 'Work':
+        return Colors.blue;
+      case 'Personal':
+        return Colors.green;
+      case 'Shopping':
+        return Colors.purple;
+      case 'Health':
+        return Colors.red;
+      case 'Education':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'Work':
+        return Icons.work;
+      case 'Personal':
+        return Icons.person;
+      case 'Shopping':
+        return Icons.shopping_cart;
+      case 'Health':
+        return Icons.health_and_safety;
+      case 'Education':
+        return Icons.school;
+      default:
+        return Icons.category;
     }
   }
 

@@ -157,4 +157,41 @@ class TaskProvider extends ChangeNotifier {
              task.dueDate!.day == date.day;
     }).toList();
   }
+  
+  // PUBLIC_INTERFACE
+  /// Gets the count of tasks for a specific category
+  /// @param category - The category to count tasks for
+  int getTaskCountForCategory(String category) {
+    if (category == 'All') {
+      return _tasks.length;
+    }
+    return _tasks.where((task) => task.category == category).length;
+  }
+  
+  // PUBLIC_INTERFACE
+  /// Gets all unique categories from existing tasks
+  List<String> getAvailableCategories() {
+    final categories = <String>{'All'};
+    for (final task in _tasks) {
+      if (task.category.isNotEmpty) {
+        categories.add(task.category);
+      }
+    }
+    return categories.toList()..sort();
+  }
+  
+  // PUBLIC_INTERFACE
+  /// Clears all active filters
+  void clearAllFilters() {
+    _searchQuery = '';
+    _selectedCategory = 'All';
+    _applyFilters();
+    notifyListeners();
+  }
+  
+  // PUBLIC_INTERFACE
+  /// Checks if any filters are currently active
+  bool get hasActiveFilters {
+    return _searchQuery.isNotEmpty || _selectedCategory != 'All';
+  }
 }

@@ -80,7 +80,7 @@ class TaskCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  // Category chip
+                  // Category chip with icon
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -94,12 +94,23 @@ class TaskCard extends StatelessWidget {
                         width: 1,
                       ),
                     ),
-                    child: Text(
-                      task.category,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: _getCategoryColor(task.category),
-                        fontWeight: FontWeight.w500,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _getCategoryIcon(task.category),
+                          size: 12,
+                          color: _getCategoryColor(task.category),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          task.category,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: _getCategoryColor(task.category),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   
@@ -157,6 +168,23 @@ class TaskCard extends StatelessWidget {
         return Colors.orange;
       default:
         return Colors.grey;
+    }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'Work':
+        return Icons.work;
+      case 'Personal':
+        return Icons.person;
+      case 'Shopping':
+        return Icons.shopping_cart;
+      case 'Health':
+        return Icons.health_and_safety;
+      case 'Education':
+        return Icons.school;
+      default:
+        return Icons.category;
     }
   }
 

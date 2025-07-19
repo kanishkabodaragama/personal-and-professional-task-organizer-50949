@@ -1,0 +1,1 @@
+ /home/kavia/workspace/code-generation/personal-and-professional-task-organizer-50949/mobile_frontend/.dart_tool/flutter_build/f2de03600e0273b5f7d2643bfdba1f61/native_assets.json: 
